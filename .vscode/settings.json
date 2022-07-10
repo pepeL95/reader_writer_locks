@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "stdio.h": "c"
+        "*.ejs": "html",
+        "stdio.h": "c",
+        "__mutex_base": "c",
+        "atomic": "c",
+        "memory": "c",
+        "mutex": "c"
     }
 }

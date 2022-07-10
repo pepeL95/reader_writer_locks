@@ -36,7 +36,7 @@ void sem_post(sem_t *s) {
 
 // ********************** Reader Writer Lock Implementation **********************
 typedef struct __rw_lock {
-    sem_t lock;
+    sem_t reader_lock;
     sem_t writer_lock;
     unsigned int readers;
     unsigned int writers;
@@ -44,7 +44,7 @@ typedef struct __rw_lock {
 
 // rw_lock initilizer
 void rw_lock_init(rw_lock_t * rwl, unsigned int rval, unsigned int wval) {
-    sem_init(&rwl->lock, 1);
+    sem_init(&rwl->reader_lock, 1);
     sem_init(&rwl->writer_lock, 1);
     rwl->readers = rval;
     rwl->writers = wval;
@@ -53,6 +53,7 @@ void rw_lock_init(rw_lock_t * rwl, unsigned int rval, unsigned int wval) {
 // acquire write lock
 void acquire_writelock(rw_lock_t * rwl) {
     /* only acquire if no other writer has it */
+    
     sem_wait(&rwl->writer_lock);
 }
 // realease write lock
@@ -64,19 +65,19 @@ void release_writelock(rw_lock_t * rwl) {
 void acquire_readlock(rw_lock_t * rwl) {
     /* acquire read lock and prevent writer from writting until
         lock has been released */
-    sem_wait(&rwl->lock); // wait for lock to crit section
+    sem_wait(&rwl->reader_lock); // wait for lock to crit section
     (rwl->readers)++;
     if (rwl->readers == 1)
         sem_wait(&rwl->writer_lock);
-    sem_post(&rwl->lock); // allow other readers to enter ds
+    sem_post(&rwl->reader_lock); // allow other readers to enter ds
 }
 
 // release read lock
 void release_readlock(rw_lock_t * rwl) {
-    sem_wait(&rwl->lock);
+    sem_wait(&rwl->reader_lock);
     (rwl->readers)--;
     if (rwl->readers == 0)
         sem_post(&rwl->writer_lock);
-    sem_post(&rwl->lock);
+    sem_post(&rwl->reader_lock);
 }
 #endif
