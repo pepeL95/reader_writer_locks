@@ -39,13 +39,15 @@ typedef struct __rw_lock {
     sem_t lock;
     sem_t writer_lock;
     unsigned int readers;
+    unsigned int writers;
 } rw_lock_t;
 
 // rw_lock initilizer
-void rw_lock_init(rw_lock_t * rwl, unsigned int val) {
+void rw_lock_init(rw_lock_t * rwl, unsigned int rval, unsigned int wval) {
     sem_init(&rwl->lock, 1);
     sem_init(&rwl->writer_lock, 1);
-    rwl->readers = val;
+    rwl->readers = rval;
+    rwl->writers = wval;
 }
 
 // acquire write lock
