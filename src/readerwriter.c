@@ -38,23 +38,25 @@ void sem_post(sem_t *s) {
 typedef struct __rw_lock {
     sem_t reader_lock;
     sem_t writer_lock;
+    sem_t FIFO_ticket;
     unsigned int readers;
-    unsigned int writers;
+    
 } rw_lock_t;
 
 // rw_lock initilizer
 void rw_lock_init(rw_lock_t * rwl, unsigned int rval, unsigned int wval) {
     sem_init(&rwl->reader_lock, 1);
     sem_init(&rwl->writer_lock, 1);
+    sem_init(&rwl->FIFO_ticket, 1);
     rwl->readers = rval;
-    rwl->writers = wval;
 }
 
 // acquire write lock
 void acquire_writelock(rw_lock_t * rwl) {
     /* only acquire if no other writer has it */
-    
+    sem_wait(&rwl->FIFO_ticket);
     sem_wait(&rwl->writer_lock);
+    sem_post(&rwl->FIFO_ticket);
 }
 // realease write lock
 void release_writelock(rw_lock_t * rwl) {
@@ -65,10 +67,12 @@ void release_writelock(rw_lock_t * rwl) {
 void acquire_readlock(rw_lock_t * rwl) {
     /* acquire read lock and prevent writer from writting until
         lock has been released */
+    sem_wait(&rwl->FIFO_ticket);
     sem_wait(&rwl->reader_lock); // wait for lock to crit section
     (rwl->readers)++;
     if (rwl->readers == 1)
         sem_wait(&rwl->writer_lock);
+    sem_post(&rwl->FIFO_ticket);
     sem_post(&rwl->reader_lock); // allow other readers to enter ds
 }
 
