@@ -3,7 +3,7 @@
 # include <stdio.h>
 # include <pthread.h>
 
-// Basic Semaphore Implementation
+// ********************** Basic Semaphore Implementation **********************
 typedef struct __sem_t {
     int val;
     pthread_cond_t cond;
@@ -34,7 +34,7 @@ void sem_post(sem_t *s) {
     pthread_mutex_unlock(&s->lock);
 }
 
-// rw_lock
+// ********************** Reader Writer Lock Implementation **********************
 typedef struct __rw_lock {
     sem_t lock;
     sem_t writer_lock;
