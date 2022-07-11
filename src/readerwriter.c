@@ -2,13 +2,17 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <pthread.h>
+# include <assert.h>
 
 // ********************** Basic Semaphore Implementation **********************
 void sem_init(sem_t * s, int val) {
+    int rc;
     s = malloc(sizeof(sem_t)); // make room in heap for custom type sem_t
     s->val = val;
-    pthread_cond_init(&s->cond, NULL);
-    pthread_mutex_init(&s->lock, NULL);
+    rc = pthread_cond_init(&s->cond, NULL);
+    assert(rc == 0);
+    rc = pthread_mutex_init(&s->lock, NULL);
+    assert(rc == 0);
 }
 
 void sem_wait(sem_t * s) {
@@ -26,8 +30,15 @@ void sem_post(sem_t *s) {
     pthread_mutex_unlock(&s->lock);
 }
 
-void sem_destuct(sem_t *s) {
-    /* deallocates heap memory */
+void sem_destuct(sem_t * s) {
+    /* destroy locks and deallocate heap memory */
+    int rc;
+    puts("destroying locks...");
+    rc = pthread_cond_destroy(&s->cond);
+    assert(rc == 0);
+    rc = pthread_mutex_destroy(&s->lock);
+    assert(rc == 0);
+    puts("locks destroyed successfully...");
     free(s);
 }
 
