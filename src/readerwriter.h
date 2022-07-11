@@ -12,7 +12,6 @@ typedef struct __sem_t {
 void sem_init(sem_t * s, int val);
 void sem_wait(sem_t * s);
 void sem_post(sem_t *s);
-void sem_destuct(sem_t *s);
 
 typedef struct __rw_lock_t {
     sem_t * reader_lock;
@@ -26,6 +25,5 @@ void acquire_writelock(rw_lock_t * rwl);
 void release_writelock(rw_lock_t * rwl);
 void acquire_readlock(rw_lock_t * rwl);
 void release_readlock(rw_lock_t * rwl);
-void rw_lock_destuct(rw_lock_t *rwl);
 
 # endif 
