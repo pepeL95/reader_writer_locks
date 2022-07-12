@@ -2,7 +2,7 @@
 # define RW_H
 # include <stdio.h>
 # include <pthread.h>
-
+    
 typedef struct __sem_t {
     int val;
     pthread_cond_t cond;
@@ -25,5 +25,10 @@ void acquire_writelock(rw_lock_t * rwl);
 void release_writelock(rw_lock_t * rwl);
 void acquire_readlock(rw_lock_t * rwl);
 void release_readlock(rw_lock_t * rwl);
+
+typedef struct __args_t {
+        rw_lock_t * rwlp;
+        char * rwp;
+} args_t;
 
 # endif 
