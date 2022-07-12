@@ -48,38 +48,27 @@ void rw_lock_init(rw_lock_t * rwl, int val) {
 
 void acquire_writelock(rw_lock_t * rwl) {
     /* only acquire if no other writer has it */
-    puts("write request waiting...");
-    // sem_wait(rwl->FIFO_ticket);
+    sem_wait(rwl->FIFO_ticket);
     sem_wait(rwl->writer_lock);
-    puts("w");
-    // sem_post(rwl->FIFO_ticket);
-    // puts("writer being served, now has lock...");
+    sem_post(rwl->FIFO_ticket);
 }
 
 void release_writelock(rw_lock_t * rwl) {
     sem_post(rwl->writer_lock);
-    // puts("writer served, gave up the lock...");
 }
 
 void acquire_readlock(rw_lock_t * rwl) {
     /* acquire read lock and prevent writer from writting until
         lock has been released */
-    // puts("read request entering...");
-    // sem_wait(rwl->FIFO_ticket);
+    sem_wait(rwl->FIFO_ticket);
     sem_wait(rwl->reader_lock); // wait for lock to crit section
     rwl->readers++;
-    // printf("readers incremented (acquire): %d\n", rwl->readers);
     if (rwl->readers == 1)
         sem_wait(rwl->writer_lock);
+    sem_post(rwl->FIFO_ticket);
     sem_post(rwl->reader_lock); // allow other readers to access ds
-    // sem_post(rwl->FIFO_ticket);
-    puts("r");
-    printf("read acquired...readers: %d\n", rwl->readers);
-    // puts("----------------------");
-    // printf("reader semaphore: %d\n", rwl->reader_lock->val);
-    // printf("writer semaphore: %d\n", rwl->writer_lock->val);
-    // printf("FIFO semaphore: %d\n", rwl->FIFO_ticket->val);
-    // printf("sem_read (acquired): %d\n", rwl->readers);
+    // puts("read lock acquired...");
+
 }
 
 void release_readlock(rw_lock_t * rwl) {
@@ -88,9 +77,5 @@ void release_readlock(rw_lock_t * rwl) {
     if (rwl->readers == 0)
         sem_post(rwl->writer_lock);
     sem_post(rwl->reader_lock);
-    // printf("reader semaphore: %d\n", rwl->reader_lock->val);
-    // printf("writer semaphore: %d\n", rwl->writer_lock->val);
-    // printf("FIFO semaphore: %d\n", rwl->FIFO_ticket->val);
-    // puts("----------------------");
-    printf("read released...readers: %d\n", rwl->readers);
+    // puts("read lock released...");
 }

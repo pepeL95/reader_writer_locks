@@ -40,15 +40,23 @@ int main(int argc, char *argv[]) {
     
     puts("*************************************************");
     for(int i = 0 ; fscanf(fp, "%c", &rw) != EOF; i++) {
-        // puts("iter");
-        if (rw == '\n') { 
-            puts("new scenario, resetting...");
+        
+        if (rw == 'r') {
+            rc = pthread_create(&p[i], NULL, simulate_read, (void *) my_args);
+            assert(rc == 0);
+        }
+        else if (rw == 'w') {
+            rc = pthread_create(&p[i], NULL, simulate_write, (void *) my_args);
+            assert(rc == 0);
+        }
+        else if (rw == '\n') { 
+            // wait for ongoing threads to finish...
             for (int i = 0; i < 10; i ++) {
                 rc = pthread_join(p[i], NULL);
                 assert(rc == 0);
             }
-            //sleep(2); // wait for potential threads to finish...
-            puts("destroying prior locks...");
+            puts("*************************************************");
+            puts("new scenario, resetting...\ndestroying prior locks...");
             rc = pthread_mutex_destroy(&rwl->reader_lock->lock); assert(rc == 0);
             rc = pthread_mutex_destroy(&rwl->writer_lock->lock); assert(rc == 0);
             rc = pthread_mutex_destroy(&rwl->FIFO_ticket->lock); assert(rc == 0);
@@ -56,18 +64,12 @@ int main(int argc, char *argv[]) {
             rc = pthread_cond_destroy(&rwl->writer_lock->cond); assert(rc == 0);
             rc = pthread_cond_destroy(&rwl->FIFO_ticket->cond); assert(rc == 0);
             puts("initializing new locks...");
-            rw_lock_init(rwl, 10);
+            rw_lock_init(rwl, 1);
             puts("resetting done successfully...");
+            puts("*************************************************");
             continue; 
         }
-        else if (rw == 'r') {
-            rc = pthread_create(&p[i], NULL, simulate_read, (void *) my_args);
-            assert(rc == 0);
-        }
-        else {
-            rc = pthread_create(&p[i], NULL, simulate_write, (void *) my_args);
-            assert(rc == 0);
-        }
+        else continue; // invalid entry, continue... 
     }
 
     for (int i = 0; i < 10; i ++) {
@@ -75,7 +77,6 @@ int main(int argc, char *argv[]) {
         assert(rc == 0);
     }
     puts("*************************************************");
-    
     
     // puts("\nfreeing heap memory...");
     free(rwl->reader_lock);
@@ -92,21 +93,23 @@ int main(int argc, char *argv[]) {
 void * simulate_read(void * arg) {
     args_t * my_args = (args_t *) arg;
     acquire_readlock(my_args->rwlp);
-    // int T = rand() % 10000;
-    // for (int i = 0; i < T; i++)
-    //     for (int j = 0; j < T; j++)
-    //         continue;
+    int T = rand() % 10000;
+    for (int i = 0; i < T; i++)
+        for (int j = 0; j < T; j++)
+            continue;
     release_readlock(my_args->rwlp);
+    puts("read done");
     return (void *) NULL;
 }
 
 void * simulate_write(void * arg) {
     args_t * my_args = (args_t *) arg;
     acquire_writelock(my_args->rwlp);
-    // int T = rand() % 10000;
-    // for (int i = 0; i < T; i++)
-    //     for (int j = 0; j < T; j++)
-    //         continue;
+    int T = rand() % 10000;
+    for (int i = 0; i < T; i++)
+        for (int j = 0; j < T; j++)
+            continue;
     release_writelock(my_args->rwlp);
+    puts("write done");
     return (void *) NULL;
 }
