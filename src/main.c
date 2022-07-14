@@ -10,6 +10,7 @@
 # include <unistd.h>
 # define THREADS_PER_SCENARIO 12
 # define NUMBER_OF_SCENARIOS 4
+
 void * simulate_read(void *);
 void * simulate_write(void *);
 
@@ -17,7 +18,7 @@ int main(int argc, char *argv[]) {
     const char * file_name = "scenarios.txt";
     char rw;
     int rc;
-    pthread_t p[48];
+    pthread_t p[THREADS_PER_SCENARIO * NUMBER_OF_SCENARIOS];
     FILE * fp;
     rw_lock_t * rwl = NULL;
     args_t * my_args = NULL; // this will be passed as args in new threads
@@ -44,15 +45,16 @@ int main(int argc, char *argv[]) {
     }
     
     puts("*************************************************");
-    for(int i = 0 ; fscanf(fp, "%c", &rw) != EOF; i++) {
-        
+    for(int i = 0 ; fscanf(fp, "%c", &rw) != EOF;) {
         if (rw == 'r') {
             rc = pthread_create(&p[i], NULL, simulate_read, (void *) my_args);
             assert(rc == 0);
+            i++;
         }
         else if (rw == 'w') {
             rc = pthread_create(&p[i], NULL, simulate_write, (void *) my_args);
             assert(rc == 0);
+            i++;
         }
         else if (rw == '\n') { 
             // wait for ongoing threads to finish...
@@ -62,7 +64,6 @@ int main(int argc, char *argv[]) {
             }
             puts("*************************************************");
             puts("new scenario, resetting...\ndestroying prior locks...");
-            sleep(2);
             rc = pthread_mutex_destroy(&rwl->reader_lock->lock); assert(rc == 0);
             rc = pthread_mutex_destroy(&rwl->writer_lock->lock); assert(rc == 0);
             rc = pthread_mutex_destroy(&rwl->FIFO_ticket->lock); assert(rc == 0);
@@ -73,7 +74,6 @@ int main(int argc, char *argv[]) {
             rw_lock_init(rwl, 1);
             puts("resetting done successfully...");
             puts("*************************************************");
-            continue; 
         }
         else continue; // invalid entry, continue... 
     }
