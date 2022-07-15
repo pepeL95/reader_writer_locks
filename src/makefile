@@ -1,5 +1,5 @@
-memsim: rwmain 
-	gcc readwrite.c main.c -Wall -pthread -std=c++17 -o rwmain
+rwmain: rwmain 
+	gcc readerwriter.c main.c -Wall -pthread -o rwmain
 
 clean:
 	rm -r  rwmain
